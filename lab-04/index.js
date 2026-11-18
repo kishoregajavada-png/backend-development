@@ -2,6 +2,7 @@ const express = require("express");
 const { open } = require("sqlite");
 const sqlite3 = require("sqlite3");
 const path = require("path");
+const bcrypt = require("bcrypt");
 
 const app = express();
 app.use(express.json());
@@ -33,5 +34,31 @@ const initializeDbAndServer = async () => {
     process.exit(1);
   }
 };
+
+// Register API
+app.post("/register/", async (request, response) => {
+  const { username, name, password } = request.body;
+
+  if (!username || !name || !password) {
+    return response.status(400).json({ error: "username, name and password are required" });
+  }
+
+  const selectUserQuery = `SELECT * FROM user WHERE username = ?;`;
+  const dbUser = await db.get(selectUserQuery, [username]);
+
+  if (dbUser !== undefined) {
+    return response.status(400).json({ error: "User already exists" });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const createUserQuery = `
+    INSERT INTO user (username, name, password)
+    VALUES (?, ?, ?);
+  `;
+  await db.run(createUserQuery, [username, name, hashedPassword]);
+
+  response.status(201).json({ message: "User created successfully" });
+});
 
 initializeDbAndServer();
