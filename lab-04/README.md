@@ -29,7 +29,7 @@ npm install
 npm start
 ```
 
-Server URL: `http://localhost:3000/`
+Server URL: `https://backend-development-1-wd33.onrender.com`
 
 ## API Endpoints
 
